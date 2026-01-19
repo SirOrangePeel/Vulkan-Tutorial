@@ -8,6 +8,7 @@
 class HelloTriangleApplication {
     public:
         void run() {
+            initWindow();
             initVulkan();
             mainLoop();
             cleanup();
@@ -16,8 +17,9 @@ class HelloTriangleApplication {
     private:
         //Window Pointer
         GLFWwindow* window;
+        VkInstance instance;
 
-        void initVulkan() {
+        void initWindow() {
             //Initializing Window manager
             glfwInit();
 
@@ -29,13 +31,49 @@ class HelloTriangleApplication {
             window = glfwCreateWindow( 800, 600, "Vulkan", nullptr,  nullptr);
         }
 
+        void initVulkan() {
+            //Allows app to talk to the Vklib
+            createInstance();
+        }
+
         void mainLoop() {
             while (!glfwWindowShouldClose(window)) {
                 glfwPollEvents();
             }
         }
 
+        void createInstance() {
+            //Technically optional
+            VkApplicationInfo appInfo{};
+            appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+            appInfo.pApplicationName = "Hello Triangle";
+            appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
+            appInfo.pEngineName = "No Engine";
+            appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
+            appInfo.apiVersion = VK_API_VERSION_1_0;
+
+            //Non Optional
+            VkInstanceCreateInfo createInfo{};
+            createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+            createInfo.pApplicationInfo = &appInfo;
+
+            uint32_t glfwExtensionCount = 0;
+            const char** glfwExtensions;
+
+            glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+
+            createInfo.enabledExtensionCount = glfwExtensionCount;
+            createInfo.ppEnabledExtensionNames = glfwExtensions;
+            createInfo.enabledLayerCount = 0;
+
+            if(vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
+                throw std::runtime_error("Failed to create instance!");
+            }
+        }
+
         void cleanup() {
+            vkDestroyInstance(instance, nullptr);
+
             glfwDestroyWindow(window);
 
             glfwTerminate();
