@@ -57,6 +57,7 @@ class HelloTriangleApplication {
         GLFWwindow* window;
         VkInstance instance;
         VkDebugUtilsMessengerEXT debugMessenger;
+        VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 
         void initWindow() {
             //Initializing Window manager
@@ -74,6 +75,34 @@ class HelloTriangleApplication {
             //Allows app to talk to the Vklib
             createInstance();
             setupDebugMessenger();
+            pickPhysicalDevice();
+        }
+
+        void pickPhysicalDevice() {
+            uint32_t deviceCount = 0;
+            vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
+
+            if(deviceCount == 0) {
+                throw std::runtime_error("Failed to find GPU(s) with Vulkan Support");
+            }
+
+            std::vector<VkPhysicalDevice> devices(deviceCount);
+            vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
+
+            for(const auto& device : devices) {
+                if(isDeviceSuitable(device)) {
+                    physicalDevice = device;
+                    break;
+                }
+            }
+
+            if(physicalDevice == VK_NULL_HANDLE) {
+                throw std::runtime_error("Failed to find suitable GPU");
+            }
+        }
+
+        bool isDeviceSuitable(VkPhysicalDevice device) {
+            return true;
         }
 
         void mainLoop() {
