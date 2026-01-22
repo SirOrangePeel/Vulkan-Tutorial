@@ -59,10 +59,13 @@ private:
 
     VkInstance instance;
     VkDebugUtilsMessengerEXT debugMessenger;
+    VkSurfaceKHR surface;
 
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 
     VkDevice device;
+
+    VkQueue graphicsQueue;
 
     void initWindow() {
         glfwInit();
@@ -78,6 +81,7 @@ private:
         setupDebugMessenger();
         pickPhysicalDevice();
         createLogicalDevice();
+        createSurface();
     }
 
     void mainLoop() {
@@ -87,10 +91,13 @@ private:
     }
 
     void cleanup() {
+        vkDestroyDevice(device, nullptr);
+
         if (enableValidationLayers) {
             DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
         }
 
+        vkDestroySurfaceKHR(instance, surface, nullptr);
         vkDestroyInstance(instance, nullptr);
 
         glfwDestroyWindow(window);
@@ -259,7 +266,7 @@ private:
         QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
         float queuePriority = 1.0f;
 
-        VkDeviceQueueCreateInfo queuCreateInfo{};
+        VkDeviceQueueCreateInfo queueCreateInfo{};
         queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
         queueCreateInfo.queueFamilyIndex = indices.graphicsFamily.value();
         queueCreateInfo.queueCount = 1;
@@ -280,6 +287,18 @@ private:
             createInfo.ppEnabledLayerNames = validationLayers.data();
         } else {
             createInfo.enabledLayerCount = 0;
+        }
+
+        if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &device) != VK_SUCCESS) {
+            throw std::runtime_error("Failed to create logical device");
+        }
+
+        vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue);
+    }
+
+    void createSurface() {
+        if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS) {
+            throw std::runtime_error("Failed to create window surface");
         }
     }
 };
