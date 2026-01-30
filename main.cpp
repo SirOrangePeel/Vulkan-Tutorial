@@ -95,7 +95,7 @@ private:
     VkSwapchainKHR swapChain;
     std::vector<VkImage> swapChainImages;
     VkFormat swapChainImageFormat;
-    VkExtent2DswapChainExtent;
+    VkExtent2D swapChainExtent;
 
     void initWindow() {
         glfwInit();
